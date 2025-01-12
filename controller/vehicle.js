@@ -4,6 +4,8 @@ import User from "../models/user.js";
 import Vehicle from "../models/vehicle.js";
 import VehicleType from "../models/vehicleType.js";
 import VehicleService from "../models/vehicleService.js";
+import { statusCode } from "../config.js/statusCode.js";
+import { handleError } from "../helper/handleError.js";
 
 // Create Vehicle
 export const createVehicle = async (req, res, next) => {
@@ -36,19 +38,18 @@ export const createVehicle = async (req, res, next) => {
     // Save the Vehicle to the database
     const savedVehicle = await newVehicle.save();
 
-    return res.status(201).json({
+    return res.status(statusCode.OK).json({
       message: "Vehicle created successfully",
       data: savedVehicle,
     });
   } catch (error) {
     console.error("Error creating vehicle:", error);
-    return next(
-      new ErrorHandler("An error occurred while creating the vehicle", 500)
-    );
+    return handleError(error, res, next);
   }
 };
 
-export const updateVehicle = async (req, res) => {
+// Update Vehicle
+export const updateVehicle = async (req, res, next) => {
   const { id } = req.params; // Vehicle ID from the request parameters
   const updateData = req.body; // Data to update
 
@@ -58,60 +59,49 @@ export const updateVehicle = async (req, res) => {
       new: true, // Return the updated document
       runValidators: true, // Ensure schema validation during update
     });
-    // .populate("type", "name")
-    // .populate("mainService", "name")
-    // .populate("driver", "name mobileNo");
 
     if (!updatedVehicle) {
-      return res.status(404).json({
+      return res.status(statusCode.NOT_FOUND).json({
         message: "Vehicle not found",
       });
     }
 
-    return res.status(200).json({
+    return res.status(statusCode.OK).json({
       message: "Vehicle updated successfully",
       data: updatedVehicle,
     });
   } catch (error) {
     console.error("Error updating vehicle:", error);
-    return res.status(500).json({
-      message: "An error occurred while updating the vehicle",
-    });
+    return handleError(error, res, next);
   }
 };
 
-export const getVehicles = async (req, res) => {
+// Get All Vehicles
+export const getVehicles = async (req, res, next) => {
   try {
     const vehicles = await Vehicle.find({ deleted: false });
-    // .populate("type", "name")
-    // .populate("mainService", "name")
-    // .populate("driver", "name mobileNo");
 
-    // Respond with the vehicle list
-    return res.status(200).json({
+    return res.status(statusCode.OK).json({
       message: "Vehicle list fetched successfully",
       data: vehicles,
     });
   } catch (error) {
     console.error("Error fetching vehicle list:", error);
-    return res.status(500).json({
-      message: "An error occurred while fetching the vehicle list",
-    });
+    return handleError(error, res, next);
   }
 };
 
-export const getVehiclesForUser = async (req, res) => {
+// Get Vehicles for User
+export const getVehiclesForUser = async (req, res, next) => {
   try {
     const { _id } = req.user;
     const userData = await User.findById(req.user._id);
 
-    // Ensure user latitude and longitude are converted to numbers
     const userLatitude = parseFloat(userData.location.coordinates[0]);
     const userLongitude = parseFloat(userData.location.coordinates[1]);
 
-    // Validate if the coordinates are valid numbers
     if (isNaN(userLatitude) || isNaN(userLongitude)) {
-      return res.status(400).json({
+      return res.status(statusCode.BAD_REQUEST).json({
         message: "Invalid location data for the user",
       });
     }
@@ -137,7 +127,7 @@ export const getVehiclesForUser = async (req, res) => {
       },
       {
         $addFields: {
-          adjustedDistance: { $multiply: ["$distance", 1.3] }, // Approximate road distance
+          adjustedDistance: { $multiply: ["$distance", 1.3] },
         },
       },
       {
@@ -151,7 +141,6 @@ export const getVehiclesForUser = async (req, res) => {
       {
         $unwind: {
           path: "$vehicle",
-          // preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -169,20 +158,18 @@ export const getVehiclesForUser = async (req, res) => {
       },
     ]);
 
-    // Respond with the vehicle list
-    return res.status(200).json({
+    return res.status(statusCode.OK).json({
       message: "Vehicle list fetched successfully",
       data: vehicles,
     });
   } catch (error) {
     console.error("Error fetching vehicle list:", error);
-    return res.status(500).json({
-      message: "An error occurred while fetching the vehicle list",
-    });
+    return handleError(error, res, next);
   }
 };
 
-export const getSingleVehicle = async (req, res) => {
+// Get Single Vehicle
+export const getSingleVehicle = async (req, res, next) => {
   const { id } = req.params; // Vehicle ID from request parameters
 
   try {
@@ -192,26 +179,23 @@ export const getSingleVehicle = async (req, res) => {
       .populate("driver", "name mobileNo");
 
     if (!vehicle) {
-      return res.status(404).json({
+      return res.status(statusCode.NOT_FOUND).json({
         message: "Vehicle not found",
       });
     }
 
-    return res.status(200).json({
+    return res.status(statusCode.OK).json({
       message: "Vehicle fetched successfully",
       data: vehicle,
     });
   } catch (error) {
     console.error("Error fetching vehicle:", error);
-    return res.status(500).json({
-      message: "An error occurred while fetching the vehicle",
-    });
+    return handleError(error, res, next);
   }
 };
 
-// Delete Vehicle
-export const deleteVehicle = async (req, res) => {
-  const { id } = req.params; // Vehicle ID from request parameters
+export const deleteVehicle = async (req, res, next) => {
+  const { id } = req.params;
 
   try {
     const vehicle = await Vehicle.findByIdAndUpdate(
@@ -221,181 +205,215 @@ export const deleteVehicle = async (req, res) => {
     );
 
     if (!vehicle) {
-      return res.status(404).json({
-        message: "Vehicle not found",
-      });
+      return next(new ErrorHandler("Vehicle not found", statusCode.NOT_FOUND));
     }
 
-    return res.status(200).json({
+    return res.status(statusCode.OK).json({
       message: "Vehicle deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting vehicle:", error);
-    return res.status(500).json({
-      message: "An error occurred while deleting the vehicle",
-    });
+    return handleError(error, res, next);
   }
 };
 
-// type
-
-export const createVehicleType = async (req, res) => {
+export const createVehicleType = async (req, res, next) => {
   try {
-    const { name, description } = req.body;
+    const { name } = req.body;
+    const { _id } = req.user;
 
-    const existingCategory = await VehicleType.findOne({ name });
+    const existingCategory = await VehicleType.findOne({
+      name,
+    });
+
     if (existingCategory) {
-      return res.status(400).json({ message: "Category already exists." });
+      throw new ErrorHandler(
+        "Category already exists.",
+        statusCode.BAD_REQUEST
+      );
     }
-
-    const newCategory = new VehicleType({ name, description });
+    const newCategory = new VehicleType({
+      name,
+      createdBy: _id,
+      updatedBy: _id,
+    });
+    
     await newCategory.save();
-    return res.status(201).json(newCategory);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server Error" });
+
+    return res.status(statusCode.CREATED).json(newCategory);
+  } catch (error) {
+    console.log(error);
+    return handleError(error, res, next);
   }
 };
 
-// Get all vehicle type categories
-export const getVehicleTypes = async (req, res) => {
+export const getVehicleTypes = async (req, res, next) => {
   try {
     const categories = await VehicleType.find();
-    return res.status(200).json(categories);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server Error" });
+    return res
+      .status(statusCode.OK)
+      .json({ message: "List fetch successfully.", data: categories });
+  } catch (error) {
+    return handleError(error, res, next);
   }
 };
 
-// Get a single vehicle type category
-export const getSingleVehicleType = async (req, res) => {
+export const getSingleVehicleType = async (req, res, next) => {
   try {
     const category = await VehicleType.findById(req.params.id);
     if (!category) {
-      return res.status(404).json({ message: "Category not found" });
+      return next(new ErrorHandler("Category not found", statusCode.NOT_FOUND));
     }
-    return res.status(200).json(category);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server Error" });
+
+    return res.status(statusCode.OK).json(category);
+  } catch (error) {
+    return handleError(error, res, next);
   }
 };
 
-// Update a vehicle type category
-export const updateVehicleType = async (req, res) => {
+export const updateVehicleType = async (req, res, next) => {
   try {
-    const { name, description } = req.body;
+    const { name } = req.body;
 
     const category = await VehicleType.findByIdAndUpdate(
       req.params.id,
-      { name, description, updatedAt: Date.now() },
+      { name },
       { new: true }
     );
+
     if (!category) {
-      return res.status(404).json({ message: "Category not found" });
+      return next(new ErrorHandler("Category not found", statusCode.NOT_FOUND));
     }
 
-    return res.status(200).json(category);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server Error" });
+    return res.status(statusCode.OK).json(category);
+  } catch (error) {
+    return handleError(error, res, next);
   }
 };
 
-// Delete a vehicle type category
-export const deleteVehicleType = async (req, res) => {
+export const deleteVehicleType = async (req, res, next) => {
   try {
-    const category = await VehicleType.findByIdAndDelete(req.params.id);
+    const category = await VehicleType.findByIdAndUpdate(
+      req.params.id,
+      { deleted: true },
+      { new: true }
+    );
+
     if (!category) {
-      return res.status(404).json({ message: "Category not found" });
+      return next(new ErrorHandler("Category not found", statusCode.NOT_FOUND));
     }
 
-    return res.status(200).json({ message: "Category deleted successfully" });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server Error" });
+    return res
+      .status(statusCode.OK)
+      .json({ message: "Category deleted successfully" });
+  } catch (error) {
+    return handleError(error, res, next);
   }
 };
-
-
-
-
-
-export const createVehicleService = async (serviceName, createdBy) => {
+export const createVehicleService = async (req, res, next) => {
+  const { serviceName, createdBy } = req.body;
   try {
     const newService = new VehicleService({
       serviceName,
       createdBy,
     });
     await newService.save();
-    return newService;
+    return res.status(statusCode.CREATED).json({
+      message: "Vehicle service created successfully",
+      data: newService,
+    });
   } catch (error) {
-    throw new Error(error.message);
+    return handleError(error, res, next);
   }
 };
 
-export const getAllVehicleServices = async () => {
+export const getAllVehicleServices = async (req, res, next) => {
   try {
-    return await VehicleService.find({ deleted: false }).populate("createdBy", "name");
+    const services = await VehicleService.find({ deleted: false }).populate(
+      "createdBy",
+      "name"
+    );
+    return res.status(statusCode.OK).json(services);
   } catch (error) {
-    throw new Error("Error fetching vehicle services");
+    return handleError(error, res, next);
   }
 };
 
-export const getVehicleServiceById = async (id) => {
+export const getVehicleServiceById = async (req, res, next) => {
+  const { id } = req.params;
   try {
-    const service = await VehicleService.findById(id).populate("createdBy", "name");
+    const service = await VehicleService.findById(id).populate(
+      "createdBy",
+      "name"
+    );
     if (!service || service.deleted) {
-      throw new Error("Vehicle Service not found");
+      return next(
+        new ErrorHandler("Vehicle service not found", statusCode.NOT_FOUND)
+      );
     }
-    return service;
+    return res.status(statusCode.OK).json(service);
   } catch (error) {
-    throw new Error(error.message);
+    return handleError(error, res, next);
   }
 };
 
-export const updateVehicleService = async (id, serviceName, updatedBy) => {
+export const updateVehicleService = async (req, res, next) => {
+  const { id } = req.params;
+  const { serviceName, updatedBy } = req.body;
   try {
     const service = await VehicleService.findById(id);
     if (!service || service.deleted) {
-      throw new Error("Vehicle Service not found");
+      return next(
+        new ErrorHandler("Vehicle service not found", statusCode.NOT_FOUND)
+      );
     }
     service.serviceName = serviceName || service.serviceName;
     service.updatedBy = updatedBy || service.updatedBy;
     await service.save();
-    return service;
+    return res.status(statusCode.OK).json({
+      message: "Vehicle service updated successfully",
+      data: service,
+    });
   } catch (error) {
-    throw new Error(error.message);
+    return handleError(error, res, next);
   }
 };
 
-export const deleteVehicleService = async (id) => {
+export const deleteVehicleService = async (req, res, next) => {
+  const { id } = req.params;
   try {
     const service = await VehicleService.findByIdAndUpdate(id, {
       deleted: true,
       active: false,
     });
     if (!service) {
-      throw new Error("Vehicle Service not found");
+      return next(
+        new ErrorHandler("Vehicle service not found", statusCode.NOT_FOUND)
+      );
     }
-    return service;
+    return res.status(statusCode.OK).json({
+      message: "Vehicle service deleted successfully",
+    });
   } catch (error) {
-    throw new Error(error.message);
+    return handleError(error, res, next);
   }
 };
 
-export const activateVehicleService = async (id) => {
+export const activateVehicleService = async (req, res, next) => {
+  const { id } = req.params;
   try {
     const service = await VehicleService.findByIdAndUpdate(id, {
       deleted: false,
       active: true,
     });
     if (!service) {
-      throw new Error("Vehicle Service not found");
+      return next(
+        new ErrorHandler("Vehicle service not found", statusCode.NOT_FOUND)
+      );
     }
-    return service;
+    return res.status(statusCode.OK).json({
+      message: "Vehicle service activated successfully",
+    });
   } catch (error) {
-    throw new Error(error.message);
+    return handleError(error, res, next);
   }
 };

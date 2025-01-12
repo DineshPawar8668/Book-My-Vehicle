@@ -1,25 +1,26 @@
 // models/vehicleType.js
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+const { ObjectId } = mongoose.Schema;
+const vehicleTypeSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+    },
+    createdBy: {
+      type: ObjectId,
+      ref: "User",
+    },
+    updatedBy: {
+      type: ObjectId,
+      ref: "User",
+    },
+    deleted: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { timestamps: true }
+);
 
-const vehicleTypeSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-const VehicleType = mongoose.model('VehicleType', vehicleTypeSchema);
+const VehicleType = mongoose.model("VehicleType", vehicleTypeSchema);
 export default VehicleType;

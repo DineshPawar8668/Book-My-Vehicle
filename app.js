@@ -1,7 +1,7 @@
 import express from 'express';
 import router from "./routes/index.js";
 import morgan from 'morgan'; // Import morgan for logging
-import { handleError } from './middleware/errorHandler.js';
+import { handleGlobleError } from './middleware/errorHandler.js';
 import { db } from './config.js/dataBase.js';
 import dotenv from 'dotenv';
 
@@ -20,7 +20,7 @@ db();
 app.use("/api",router);
 
 // Error handler:
-app.use(handleError);
+app.use(handleGlobleError);
 
 // Define the port
 const PORT = 3000;

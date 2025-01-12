@@ -1,15 +1,13 @@
 import express from "express";
-const router = express.Router(); 
+import { getProfile, updateProfile } from "../controller/vOwner.js";
+import {
+  vOwnerAuthentication,
+} from "./../middleware/authentication.js";
+
+const router = express.Router();
+
+// Define the route
+router.get("/profile/v1", vOwnerAuthentication, getProfile);
+router.get("/update/profile/v1", vOwnerAuthentication, updateProfile);
 
 export default router;
-
-
-// import express from "express";
-
-// export const router = express.Router();
-
-// router.get("/list/v1", (req, res) => {
-//   res.json({
-//     message: "data get",
-//   });
-// });
