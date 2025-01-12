@@ -1,0 +1,49 @@
+# Node modules
+/node_modules/
+
+# npm package-lock file
+package-lock.json
+
+# Yarn lock file
+yarn.lock
+
+# Typescript build files (if using Typescript)
+*.tsbuildinfo
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# VS Code settings
+.vscode/
+
+# Mac system files
+.DS_Store
+
+# NPM debug files
+npm-debug.log
+
+# Yarn error files
+yarn-error.log
+
+# Build directories (React build)
+build/
+
+# Temporary directories
+.tmp/
+.cache/
+
+# React Native specific files
+.expo/
+.expo-shared/
+
+# Ignore coverage folders (e.g., for Jest tests)
+coverage/
+
+# Ignore IDE or Editor specific files
+.idea/
+
+# Ignore test or local data files
+tests/
