@@ -1,0 +1,41 @@
+# Node modules
+node_modules
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# VS Code settings
+.vscode/
+
+# Mac system files
+.DS_Store
+
+# NPM debug files
+npm-debug.log
+
+# Yarn error files
+yarn-error.log
+
+# Build directories
+/dist
+/build
+
+# Temporary directories
+.tmp
+.cache
+
+# React Native specific files
+.expo/
+.expo-shared/
+
+# npm package-lock file
+package-lock.json
+
+# Yarn lock file
+yarn.lock
+
+# Typescript build files (if using Typescript)
+*.tsbuildinfo
