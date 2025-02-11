@@ -20,10 +20,10 @@ import {
 const router = express.Router();
 
 // Vehicle Creation:
+router.get("/single/:id/v1", getSingleVehicle);
 router.get("/list/v1", vOwnerAuthentication, getVehicles);
 router.post("/create/v1", vOwnerAuthentication, createVehicle);
 router.put("/update/:id/v1", vOwnerAuthentication, updateVehicle);
-router.get("/single/:id/v1", vOwnerAuthentication, getSingleVehicle);
 router.put("/delete/:id/v1", vOwnerAuthentication, deleteVehicle);
 
 // Vehicle Category:

@@ -1,5 +1,5 @@
 import { ErrorHandler } from "../middleware/errorHandler.js";
-import { statusCode } from './../config.js/statusCode.js';
+import { statusCode } from "./../config.js/statusCode.js";
 
 export const handleError = (error, res, next) => {
   if (error instanceof ErrorHandler) {
@@ -7,7 +7,7 @@ export const handleError = (error, res, next) => {
   }
   return next(
     new ErrorHandler(
-      "An error occurred while processing your request.",
+      error.message || "An error occurred while processing your request.",
       statusCode.INTERNAL_SERVER_ERROR
     )
   );

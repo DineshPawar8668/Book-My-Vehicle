@@ -6,7 +6,7 @@ import { handleError } from "../helper/handleError.js";
 
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
+    expiresIn: "1min",
   });
 };
 
@@ -19,14 +19,16 @@ const generateRefreshToken = (userId) => {
 export const registerUser = async (req, res, next) => {
   const { name, mobileNo, password, email, role, location } = req.body;
 
+  console.log(req.body);
+
   if (!name || !mobileNo || !password || !email || !role) {
     return next(new ErrorHandler("All fields are required", 400));
   }
 
   try {
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email , role});
     if (existingUser) {
-      return next(new ErrorHandler("User already exists with this email", 409));
+      return next(new ErrorHandler(`Your account already exists as a ${existingUser?.role}`, 409));
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -42,17 +44,20 @@ export const registerUser = async (req, res, next) => {
     });
 
     await newUser.save();
-    res.status(201).json({ success: true, message: "User registered successfully" });
+    res
+      .status(201)
+      .json({ success: true, message: "User registered successfully" });
   } catch (error) {
+
+    console.log(error)
     return handleError(error, res, next);
   }
 };
 
 export const login = async (req, res, next) => {
   const { email, password, role } = req.body;
-
   if (!email || !password || !role) {
-    return next(new ErrorHandler("Email and password are required", 400));
+    return next(new ErrorHandler("Email password and role are required", 400));
   }
 
   try {

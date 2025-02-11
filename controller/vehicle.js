@@ -114,7 +114,7 @@ export const getVehiclesForUser = async (req, res, next) => {
             coordinates: [userLatitude, userLongitude],
           },
           distanceField: "distance",
-          maxDistance: parseInt(req.query.distance) * 1000,
+          maxDistance: parseInt(30) * 1000,
           spherical: true,
         },
       },
@@ -173,10 +173,7 @@ export const getSingleVehicle = async (req, res, next) => {
   const { id } = req.params; // Vehicle ID from request parameters
 
   try {
-    const vehicle = await Vehicle.findById(id)
-      .populate("type", "name")
-      .populate("mainService", "name")
-      .populate("driver", "name mobileNo");
+    const vehicle = await Vehicle.findById(id);
 
     if (!vehicle) {
       return res.status(statusCode.NOT_FOUND).json({
@@ -221,7 +218,7 @@ export const createVehicleType = async (req, res, next) => {
     const { name } = req.body;
     const { _id } = req.user;
 
-    const existingCategory = await VehicleType.findOne({
+    const existingCategory = await VehixcleType.findOne({
       name,
     });
 
